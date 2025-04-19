@@ -1,124 +1,122 @@
+# 🧠 Rumor Propagation with Modular Fourier Neural Operators
 
-# 📣 Modellling The Propogation of Rumors with Fourier Neural Operators
+A fully modular, PyTorch-powered framework for simulating, learning, and inferring **rumor dynamics** over networks using **Fourier Neural Operators (FNOs)**. Built to explore not just how information spreads—but what it reveals about the network itself.
 
-A research simulation and machine learning pipeline for modeling **rumor propagation dynamics** which uses **Fourier Neural Operators (FNOs)**. Current work in progress.  Based on a modular design, this framework **currently** supports:
+## 🚀 What This Repo Supports
 
-- Forward simulations of rumor dynamics
-- Inverse parameter recovery (learning model parameters from data)
-- Neural operator learning with PyTorch
+- ✅ Forward simulations of rumor spread (Dong, SIR, Topo-based models)
+- 🔁 Inverse learning to recover model parameters from observed dynamics
+- 📈 Bifurcation and sensitivity analysis with precomputed heatmaps
+- 🧠 Inference of network **topological features** (clustering, path length) from observed trajectories
+- 📊 Clean CLI + script interfaces for all training and evaluation routines
+- 🔌 Drop-in modular support for defining new models
+
 ---
 
-## 🚀 Features
+## 📂 Repository Structure
 
-- ✅ Modular simulation engine (Dong Model, SIR, etc.)
-- 📊 Data generation with configurable sampling
-- 🧠 Fourier Neural Operator for time-series learning
-- 🔁 Forward & inverse training pipelines
-- 📈 Inference and visualization utilities
-- 💪 Parameter Sensitivity and Bifurcation Analysis
-  
-![Parameter Sensitivity Matrix](figures/dong_parameter_bifurcation_matrix_70res.png)
+```
+rumor_spread/
+├── dynamics/               # All pluggable simulation models
+│   ├── base.py            # Abstract model interface
+│   ├── dong_model.py      # Discrete-time Dong rumor model
+│   ├── sir_model.py       # SIR epidemic model (partially implemented)
+│   └── topo_model.py      # Rumor spreading with topological descriptors
+│
+├── models/                # Fourier Neural Operator implementations
+│   ├── fno.py             # FNO1d model definition
+│   └── spectral_conv.py   # 1D spectral convolution building block
+│
+├── utils/                 # Utility code for dataset generation
+│   └── data_generation.py # Generic time-aware dataset builder
+│
+├── scripts/               # CLI-ready training & visualization scripts
+│   ├── train_forward.py
+│   ├── train_inverse.py
+│   ├── train_topology_inverse.py
+│   ├── visualize_inverse_topology.py
+│   └── test_fno_topology.py
+│
+├── run_pipeline.py        # Full CLI pipeline controller
+├── inference.py           # Inference + visual output
+├── figures/               # Auto-generated figures, heatmaps
+├── checkpoints/           # Trained models
+└── plots/                 # Visual output (e.g., inverse topology scatter)
+```
 
-## 🧬 Project Details
+---
 
-### Modular Dynamical Systems Framework
+## 🧬 Simulation Models (All Subclass `DynamicalSystem`)
 
-This project is structured as a **modular simulator-learner pipeline**. At the core is an abstract modeling interface, designed to allow **pluggable, interchangeable dynamical systems**, which can be trained and analyzed using Fourier Neural Operators (FNOs).
+Each model must define:
+```python
+.simulate(params, T, dt)
+.parameter_dim()
+.state_dim()
+```
 
-#### 🔧 Core Design Pattern: Abstract Base Class
+Current implementations:
+- **DongRumorModel** – rumor with forgetting and saturation
+- **SIRModel** – over graph topology
+- **TopoRumorModel** – rumor + dynamic topology + descriptor prediction (clustering, path length, assortativity)
 
-- `DynamicalSystem` in `dynamics/base.py` defines the contract all models must follow:
-  - `.simulate(params, T, dt, **kwargs)`
-  - `.parameter_dim()` and `.state_dim()`
+---
 
-This enables seamless compatibility with the learning pipeline, regardless of model type.
+## 🧠 Learning Tasks
 
-#### 🚀 Model Implementations
-
-- `DongRumorModel` (in `dynamics/dong_model.py`) implements a deterministic, discrete-time rumor spread system
-- `SIRModel` (in `dynamics/sir_model.py`) simulates epidemics over a network topology
-- More models can be added with just a few lines by subclassing `DynamicalSystem`
-
-#### 🧠 Learning Pipeline (Forward/Inverse)
-
-- `models/fno.py` implements the Fourier Neural Operator (`FNO1d`) using spectral layers (`spectral_conv.py`)
-- Input/output format for models is unified: `[batch, channels, time]`
-- `run_pipeline.py` controls CLI workflows: `train_forward`, `train_inverse`, and `inference`
-
-#### 🧪 Utilities
-
-- `utils/data_generation.py` handles dataset creation with time-grid embedding
-- Modular design means data generation is **model-agnostic**
-
-#### 🧵 Scripts
-
-- `scripts/train_forward.py` and `scripts/train_inverse.py` are standalone versions of the training loops
-- These scripts help debug and iterate quickly, decoupled from CLI interface
-
-#### 📦 Structure Overview
-
-- `dynamics/`
-  - `base.py` — Defines abstract base class `DynamicalSystem`
-  - `dong_model.py` — Dong rumor model subclassing `DynamicalSystem`
-  - `sir_model.py` — Network-based SIR model (partially implemented)
-- `models/`
-  - `fno.py` — Defines the core `FNO1d` model using SpectralConv1d blocks
-  - `spectral_conv.py` — Implements the 1D spectral convolution layer
-- `utils/`
-  - `data_generation.py` — Unified dataset creation function with time-aware formatting
-- `scripts/`
-  - `train_forward.py` — Trains FNO on trajectories generated by a system
-  - `train_inverse.py` — Trains FNO to recover parameters from system dynamics
-- `run_pipeline.py` — Command-line entrypoint to run end-to-end pipelines
-- `inference.py` — Standalone script to evaluate a trained FNO model on a known system
-
-## 🧪 Example Usage
-
-### Train Forward Model
+### ➤ Forward Problem
+**Goal:** Learn \( u(t) \) given parameters \( \theta = (\beta, \alpha, \delta, i_0) \)
 ```bash
 python run_pipeline.py train_forward --epochs 100
 ```
 
-### Train Inverse Model
+### ➤ Inverse Problem
+**Goal:** Recover \( \theta \) given trajectory \( u(t) \)
 ```bash
 python run_pipeline.py train_inverse --epochs 100
 ```
 
-### Run Full Pipeline
+### ➤ Topology Inference (Experimental)
+**Goal:** Predict clustering, path length, assortativity from observed rumor dynamics
 ```bash
-python run_pipeline.py all --epochs 100
+python scripts/train_topology_inverse.py
 ```
 
-### Visualize Predictions
+**Visualization:**
 ```bash
-python run_pipeline.py inference
+python scripts/visualize_topology_inverse.py --samples 30
 ```
 
+---
 
-## 🛠 Requirements
+## 📊 Requirements
 
-- Python 3.10+
-- PyTorch ≥ 1.12
-- matplotlib
-- tqdm
-- numpy
-- networkx (for SIR graph models)
-
-Install everything:
 ```bash
 pip install -r requirements.txt
 ```
+- Python ≥ 3.10
+- PyTorch ≥ 1.12
+- matplotlib, numpy, tqdm, seaborn, networkx
 
+---
 
-## 🤝 Contributing
+## 🤔 Who Should Use This?
 
-PRs and ideas welcome! Open an issue or fork the project and drop some 🔥 improvements.
+- ML researchers exploring neural operators
+- Network scientists modeling information diffusion
+- Physicists studying complex systems
+- Anyone trying to infer graph properties from observed dynamics
 
-## 🧠 Author
-
-**Jacob Briones**  
-Feel free to connect or cite the project!
+---
 
 ## 📜 License
 
-MIT License
+MIT — use it, fork it, cite it, build weird stuff on top of it.
+
+---
+
+## 👨‍💻 Author
+
+**Jacob Briones**  
+*Sexy Nerd. Father. Dynamical system maximalist. Philosopher?*
+
