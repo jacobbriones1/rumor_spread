@@ -17,6 +17,7 @@ A research simulation and machine learning pipeline for modeling **rumor propaga
 - 🔁 Forward & inverse training pipelines
 - 📈 Inference and visualization utilities
 - 💪 Parameter Sensitivity and Bifurcation Analysis
+![Parameter Sensitivity Grid ](figures/dong_parameter_bifurcation_matrix_70res.png)
 
 ## 🧬 Model Summary
 
