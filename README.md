@@ -47,8 +47,9 @@ Each model implements:
 
 ## 🧠 Learning Tasks
 
-![FNO vs Ground Truth across topologies](figures/fno_vs_groundtruth_topologies.png)
-*FNO predictions closely track ground truth over ER, BA, WS networks, demonstrating generalization.*
+![FNO vs Ground Truth across topologies](figures/fno_vs_groundtruth.png)
+
+*FNO predictions closely track ground truth over ER, BA, WS networks, demonstrating generalization even for minimal training examples (50 epochs of training generated this)*
 
 ### ➤ Forward Learning
 Learn \( u(t) \) from model parameters \( \theta = (\beta, \alpha, \delta, i_0) \)
@@ -70,23 +71,17 @@ python run_pipeline.py train_inverse --epochs 100
 ### ➤ Topology Inference (Exploratory)
 Predict clustering/path length/assortativity from rumor dynamics
 
-![Inverse prediction of topology features](figures/inverse_topology_predictions.png)
-*Clustering and path length show recoverable structure from observed dynamics; assortativity remains harder.*
-
 ```bash
 python scripts/train_topology_inverse.py
 python scripts/visualize_topology_inverse.py --samples 30
 ```
 
-<div align="center">
-  <img src="figures/inverse_topology_predictions.png" width="700"/>
-  <p style="font-size:small">Inverse FNO recovering topological descriptors from observed system dynamics</p>
-</div>
+![Inverse prediction of topology features](figures/inverse_topology_predictions.png)
+*Clustering and path length show recoverable structure from observed dynamics; assortativity remains harder.*
 
----
 
-![Bifurcation surfaces/heatmaps for combinations of α, β, δ](figures/dong_parameter_bifurcation_matrix_70res.png)
-*Bifurcation surfaces generated across parameter sweeps — highlighting nonlinear transitions.*
+
+
 
 ## 📈 Bifurcation & Parameter Sensitivity
 
@@ -121,12 +116,13 @@ pip install -r requirements.txt
 
 ## 📜 License
 
-MIT — do your thing.
+MIT — do your thing. License.
 
 ---
 
 ## 👨‍💻 Author
 
 **Jacob Briones**  
-*Dad. Math undergrad. Writes models and diapers. *
+*Dad. Above average Math Student. Okay Phsyics Student. Avid in Machine learning, and diaper changing.*
+
 
