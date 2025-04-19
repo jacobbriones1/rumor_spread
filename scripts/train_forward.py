@@ -1,7 +1,7 @@
 import torch
 import os
 from torch.utils.data import DataLoader, TensorDataset
-from models.fno import FNO1d
+from models.fno import FN1d
 from dynamics.dong_model import DongRumorModel
 from utils.data_generation import generate_dataset
 
@@ -14,6 +14,8 @@ BATCH_SIZE = 32
 if __name__ == "__main__":
     model_system = DongRumorModel()
     x, y = generate_dataset(model_system, NUM_SAMPLES, T, dt, inverse=False, file_name='trajectories_dong_model.pth')
+    print(f"x shape: {x.shape}, y shape: {y.shape}")
+
     loader = DataLoader(TensorDataset(x, y), batch_size=BATCH_SIZE, shuffle=True)
 
     model = FNO1d(in_channels=4, out_channels=3).to(DEVICE)

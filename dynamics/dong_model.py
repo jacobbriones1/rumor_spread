@@ -17,7 +17,9 @@ class DongRumorModel(DynamicalSystem):
         max_d = 0.1  # max allowed change per time step
         trajectory = []
 
-        for _ in range(T):
+        steps = int(T / dt)
+        for _ in range(steps):
+
             # Discrete-time Euler update (clipped for stability)
 
             dS = (S * (1 - N) - alpha * S * I) * dt

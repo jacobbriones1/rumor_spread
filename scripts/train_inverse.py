@@ -26,7 +26,9 @@ model_system = DongRumorModel()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Data (Inverse: trajectory -> parameter)
-x, y = generate_dataset(model_system, num_samples=500)
+# Add time channel to inverse inputs
+time_grid = torch.linspace(0, 1, T_steps).unsqueeze(0).repeat(NUM_SAMPLES, 1)  # shape [N, T]
+x = torch.cat([x, time_grid.unsqueeze(1)], dim=1)  # [N, 3, T] + [N, 1, T] → [N, 4, T]
 loader = DataLoader(TensorDataset(x, y), batch_size=32, shuffle=True)
 
 # FNO Inverse Model

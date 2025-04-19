@@ -27,7 +27,8 @@ def generate_dataset(model, num_samples, T, dt, inverse=False, file_name=None):
         full_input = torch.cat([param_repeated, time_grid], dim=0)  # Shape: (4, T)
 
         if inverse:
-            x_list.append(traj)  # Input is trajectory, shape (3, T)
+            full_input = torch.cat([traj, time_grid], dim=0)  # shape [4, T]
+            x_list.append(full_input)
             y_list.append(params.unsqueeze(-1).repeat(1, time_grid.shape[1]))
         else:
             x_list.append(full_input)  # Input is [params + time] (4, T)
