@@ -10,9 +10,9 @@ from utils.data_generation import generate_dataset  # ✅ Unified data generatio
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # === PARAMETERS ===
-T, dt = 512, 0.05
+T, dt = 50, 0.01
 T_steps = int(T / dt)
-INIT_CONDS = [0.8, 0.1, 0.2]
+INIT_CONDS = [1.5,0.05,7.9]
 NUM_SAMPLES = 1000
 BATCH_SIZE = 32
 
@@ -71,7 +71,7 @@ def inference(model_system):
     model.load_state_dict(torch.load("checkpoints/dong_fno_forward.pth"))
     model.eval()
 
-    true_params = torch.tensor([0.5, 0.85, 0.07])
+    true_params = torch.tensor([0.3,1.6, 0.28])
     traj = model_system.simulate(true_params, T, dt, initial_conditions=INIT_CONDS)[:, :T_steps]
 
     time_grid = torch.linspace(0, 1, T_steps).unsqueeze(0).to(device)
@@ -80,13 +80,18 @@ def inference(model_system):
 
     with torch.no_grad():
         pred = model(inp).cpu().squeeze(0)
+    true_S, true_I, true_N = traj
+    pred_S, pred_I, pred_N = pred[:,:T_steps]
 
-    labels = ['S(t)', 'I(t)', 'N(t)']
-    for name, series in zip(labels, traj):
-        print(f"True {name}(t): mean={{series.mean():.5f}}, std={{series.std():.5e}}")
+    labels = ['S(t)', 'I(t)','N(t)']
+    print(f"True S(t): mean={true_S.mean():.5f}, std={true_S.std():.5e}")
+    print(f"True I(t): mean={true_I.mean():.5f}, std={true_I.std():.5e}")
+    print(f"True N(t): mean={true_N.mean():.5f}, std={true_N.std():.5e}")
+    print(f"Pred S(t): mean={pred_S.mean():.5f}, std={pred_S.std():.5e}")
+    print(f"Pred I(t): mean={pred_I.mean():.5f}, std={pred_I.std():.5e}")
+    print(f"Pred N(t): mean={pred_N.mean():.5f}, std={pred_N.std():.5e}")
 
-    for name, series in zip(labels, pred):
-        print(f"Pred {name}(t): mean={{series.mean():.5f}}, std={{series.std():.5e}}")
+
 
     plt.figure(figsize=(10, 5))
     for i in range(3):
