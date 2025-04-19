@@ -16,13 +16,14 @@ A research simulation and machine learning pipeline for modeling **rumor propaga
 - 🔁 Forward & inverse training pipelines
 - 📈 Inference and visualization utilities
 - 💪 Parameter Sensitivity and Bifurcation Analysis
-![Parameter Sensitivity Grid ](figures/dong_parameter_bifurcation_matrix_70res.png)
+  
+![Parameter Sensitivity Matrix](figures/dong_parameter_bifurcation_matrix_70res.png)
 
-## 🧬 Model Summary
+## 🧬 Project Details
 
 ### Modular Dynamical Systems Framework
 
-This project is structured as a **modular simulator-learner pipeline** using modern Python best practices. At the core is an abstract modeling interface, designed to allow **pluggable, interchangeable dynamical systems**, which can be trained and analyzed using Fourier Neural Operators (FNOs).
+This project is structured as a **modular simulator-learner pipeline**. At the core is an abstract modeling interface, designed to allow **pluggable, interchangeable dynamical systems**, which can be trained and analyzed using Fourier Neural Operators (FNOs).
 
 #### 🔧 Core Design Pattern: Abstract Base Class
 
