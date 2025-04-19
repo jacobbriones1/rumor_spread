@@ -15,8 +15,10 @@ def generate_dataset(model, num_samples, T=200, dt=0.05):
     for _ in range(num_samples):
         params = sample_params()
         traj = model.simulate(params, T, dt, initial_conditions=[0.8, 0.2, 1.0])
-        x_list.append(traj)
-        y_list.append(params.unsqueeze(-1).repeat(1, T))
+        time_grid = torch.linspace(0, 1, traj.shape[1]).unsqueeze(0)
+        x_input = torch.cat([traj, time_grid], dim=0)
+        x_list.append(x_input)
+        y_list.append(params.unsqueeze(-1).repeat(1, traj.shape[1]))
     return torch.stack(x_list), torch.stack(y_list)
 
 # Init
@@ -37,8 +39,8 @@ for epoch in range(50):
     losses = []
     for xb, yb in loader:
         xb, yb = xb.to(device), yb.to(device)
-        optimizer.zero_grad()
-        pred = model(xb).mean(dim=-1)  # mean across time
+        optimizer.zero_grad()  # ✅ FIXED
+        pred = model(xb).mean(dim=-1)
         loss = torch.nn.functional.mse_loss(pred, yb[:, :, 0])
         loss.backward()
         optimizer.step()

@@ -1,4 +1,3 @@
-# train_forward.py
 import torch
 import os
 from torch.utils.data import DataLoader, TensorDataset
@@ -25,7 +24,7 @@ if __name__ == "__main__":
         losses = []
         for xb, yb in loader:
             xb, yb = xb.to(DEVICE), yb.to(DEVICE)
-            optimizer.zero_grad()
+            optimizer.zero_grad()  # ✅ FIXED
             loss = torch.nn.functional.mse_loss(model(xb), yb)
             loss.backward()
             optimizer.step()
