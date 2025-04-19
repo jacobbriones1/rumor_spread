@@ -1,6 +1,8 @@
 # 🧠 Rumor Propagation with Modular Fourier Neural Operators
 
-A fully modular, PyTorch-powered framework for simulating, learning, and inferring **rumor dynamics** over networks using **Fourier Neural Operators (FNOs)**. Built to explore not just how information spreads—but what it reveals about the network itself.
+A modular, PyTorch-powered sandbox for simulating and learning **rumor dynamics** over networks using **Fourier Neural Operators (FNOs)**. Built to explore how rumors spread—and what they might reveal about the structure of the network beneath.
+
+> This is experimental research code, built quickly, and subject to revision. Use responsibly.
 
 ## 🚀 What This Repo Supports
 
@@ -18,79 +20,86 @@ A fully modular, PyTorch-powered framework for simulating, learning, and inferri
 ```
 rumor_spread/
 ├── dynamics/               # All pluggable simulation models
-│   ├── base.py            # Abstract model interface
-│   ├── dong_model.py      # Discrete-time Dong rumor model
-│   ├── sir_model.py       # SIR epidemic model (partially implemented)
-│   └── topo_model.py      # Rumor spreading with topological descriptors
-│
-├── models/                # Fourier Neural Operator implementations
-│   ├── fno.py             # FNO1d model definition
-│   └── spectral_conv.py   # 1D spectral convolution building block
-│
-├── utils/                 # Utility code for dataset generation
-│   └── data_generation.py # Generic time-aware dataset builder
-│
-├── scripts/               # CLI-ready training & visualization scripts
-│   ├── train_forward.py
-│   ├── train_inverse.py
-│   ├── train_topology_inverse.py
-│   ├── visualize_inverse_topology.py
-│   └── test_fno_topology.py
-│
-├── run_pipeline.py        # Full CLI pipeline controller
-├── inference.py           # Inference + visual output
-├── figures/               # Auto-generated figures, heatmaps
-├── checkpoints/           # Trained models
-└── plots/                 # Visual output (e.g., inverse topology scatter)
+├── models/                 # FNO and spectral conv blocks
+├── utils/                  # Dataset generation helpers
+├── scripts/                # CLI-ready trainers and visualizers
+├── run_pipeline.py         # Unified entrypoint
+├── inference.py            # Inference wrapper
+├── figures/, checkpoints/, plots/  # Output
 ```
 
 ---
 
-## 🧬 Simulation Models (All Subclass `DynamicalSystem`)
+## 🧬 Simulation Models
 
-Each model must define:
+Each model implements:
 ```python
 .simulate(params, T, dt)
 .parameter_dim()
 .state_dim()
 ```
 
-Current implementations:
-- **DongRumorModel** – rumor with forgetting and saturation
-- **SIRModel** – over graph topology
-- **TopoRumorModel** – rumor + dynamic topology + descriptor prediction (clustering, path length, assortativity)
+- **DongRumorModel** – classic saturation-based rumor model
+- **SIRModel** – (WIP) epidemic simulation
+- **TopoRumorModel** – includes topology-dependent outputs (clustering, etc.)
 
 ---
 
 ## 🧠 Learning Tasks
 
-### ➤ Forward Problem
-**Goal:** Learn \( u(t) \) given parameters \( \theta = (\beta, \alpha, \delta, i_0) \)
+![FNO vs Ground Truth across topologies](figures/fno_vs_groundtruth_topologies.png)
+*FNO predictions closely track ground truth over ER, BA, WS networks, demonstrating generalization.*
+
+### ➤ Forward Learning
+Learn \( u(t) \) from model parameters \( \theta = (\beta, \alpha, \delta, i_0) \)
 ```bash
 python run_pipeline.py train_forward --epochs 100
 ```
 
-### ➤ Inverse Problem
-**Goal:** Recover \( \theta \) given trajectory \( u(t) \)
+<div align="center">
+  <img src="figures/fno_vs_groundtruth_topologies.png" width="700"/>
+  <p style="font-size:small">FNO predictions vs. ground truth across ER, BA, WS networks</p>
+</div>
+
+### ➤ Inverse Learning
+Recover \( \theta \) from trajectories
 ```bash
 python run_pipeline.py train_inverse --epochs 100
 ```
 
-### ➤ Topology Inference (Experimental)
-**Goal:** Predict clustering, path length, assortativity from observed rumor dynamics
+### ➤ Topology Inference (Exploratory)
+Predict clustering/path length/assortativity from rumor dynamics
+
+![Inverse prediction of topology features](figures/inverse_topology_predictions.png)
+*Clustering and path length show recoverable structure from observed dynamics; assortativity remains harder.*
+
 ```bash
 python scripts/train_topology_inverse.py
-```
-
-**Visualization:**
-```bash
 python scripts/visualize_topology_inverse.py --samples 30
 ```
+
+<div align="center">
+  <img src="figures/inverse_topology_predictions.png" width="700"/>
+  <p style="font-size:small">Inverse FNO recovering topological descriptors from observed system dynamics</p>
+</div>
+
+---
+
+![Bifurcation surfaces for combinations of α, β, δ](figures/dong_parameter_bifurcation_matrix_70res.png)
+*Bifurcation surfaces generated across parameter sweeps — highlighting nonlinear transitions.*
+
+## 📈 Bifurcation & Parameter Sensitivity
+
+This system explores parameter interactions across large sweeps.
+
+<div align="center">
+  <img src="figures/dong_parameter_bifurcation_matrix_70res.png" width="700"/>
+  <p style="font-size:small">Bifurcation surfaces computed for combinations of α, β, δ</p>
+</div>
 
 ---
 
 ## 📊 Requirements
-
 ```bash
 pip install -r requirements.txt
 ```
@@ -102,21 +111,21 @@ pip install -r requirements.txt
 
 ## 🤔 Who Should Use This?
 
-- ML researchers exploring neural operators
-- Network scientists modeling information diffusion
-- Physicists studying complex systems
-- Anyone trying to infer graph properties from observed dynamics
+- ML folks playing with neural operators
+- Network scientists modeling spread phenomena
+- People curious about how topology affects emergent dynamics
+- Anyone looking to test FNOs on weird, real-world inspired simulations
 
 ---
 
 ## 📜 License
 
-MIT — use it, fork it, cite it, build weird stuff on top of it.
+MIT — do your thing.
 
 ---
 
 ## 👨‍💻 Author
 
 **Jacob Briones**  
-*Sexy Nerd. Father. Dynamical system maximalist. Philosopher?*
+*Dad. Math undergrad. Writes models and diapers. *
 
