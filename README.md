@@ -1,128 +1,131 @@
 # 🧠 Rumor Propagation with Modular Fourier Neural Operators
 
-A modular, PyTorch-powered sandbox for simulating and learning **rumor dynamics** over networks using **Fourier Neural Operators (FNOs)**. Built to explore how rumors spread—and what they might reveal about the structure of the network beneath.
+This repo simulates and learns the dynamics of **rumor spreading** on networks using **Fourier Neural Operators (FNOs)**.
 
-> This is experimental research code, built quickly, and subject to revision. Use responsibly.
-
-## 🚀 What This Repo Supports
-
-- ✅ Forward simulations of rumor spread (Dong, SIR, Topo-based models)
-- 🔁 Inverse learning to recover model parameters from observed dynamics
-- 📈 Bifurcation and sensitivity analysis with precomputed heatmaps
-- 🧠 Inference of network **topological features** (clustering, path length) from observed trajectories
-- 📊 Clean CLI + script interfaces for all training and evaluation routines
-- 🔌 Drop-in modular support for defining new models
+The system is modular, interpretable, and frequency-aware — enabling both forward modeling and inverse parameter inference, with interpretable insights into learned frequency modes.
 
 ---
 
-## 📂 Repository Structure
+## 📦 Features
 
-```
-rumor_spread/
-├── dynamics/               # All pluggable simulation models
-├── models/                 # FNO and spectral conv blocks
-├── utils/                  # Dataset generation helpers
-├── scripts/                # CLI-ready trainers and visualizers
-├── run_pipeline.py         # Unified entrypoint
-├── inference.py            # Inference wrapper
-├── figures/, checkpoints/, plots/  # Output
-```
+- ✅ Simulate rumor dynamics on ER, BA, WS graphs
+- ✅ Train **FNOs** to learn time evolution of SIR systems
+- 🔁 Invert trajectories → model parameters with inverse FNOs
+- 📈 Bifurcation surface generation over α, β, δ parameter sweeps
+- 🧠 Visualize learned **spectral filters** and frequency preferences
+- 🔎 Explore effect of network topology on rumor behavior
 
 ---
 
-## 🧬 Simulation Models
+## 🧬 Models Included
 
 Each model implements:
+
 ```python
-.simulate(params, T, dt)
+.simulate(params, T, dt, ...)
 .parameter_dim()
 .state_dim()
 ```
 
-- **DongRumorModel** – rumor propogation model on homogeneous network with varying (logistic) population size, as proposed by Dong et. al (2018).
-- **SIRModel** –  Rumor Spreading epidemic simulation on a given network topology.
-- **TopoRumorModel** – SIRModel which includes topology-dependent outputs (clustering, etc.)
+### 🔹 `DongRumorModel`  
+ODE-based SIR-type model from Dong et al. (2018)
+
+### 🔹 `SIRModel`  
+Standard SIR rumor model on fixed graph topologies
+
+### 🔹 `DegreeAwareSIRModel`  
+Agent-based SIR model using degree-dependent transition probabilities \( P(k'|k) \) — now supports FNO-based learning and full parameter inversion
 
 ---
 
-## 🧠 Learning Tasks
+## 📂 Project Structure
 
-![FNO vs Ground Truth across topologies](figures/fno_vs_groundtruth.png)
-
-*FNO predictions closely track ground truth over ER, BA, WS networks, demonstrating generalization even for minimal training examples (50 epochs of training generated this)*
-
-### ➤ Forward Learning
-Learn \( u(t) \) from model parameters \( \theta = (\beta, \alpha, \delta, i_0) \)
-```bash
-python run_pipeline.py train_forward --epochs 100
+```
+modular_fno/
+├── dynamics/               # Simulation models
+├── models/                 # FNO + spectral conv layers
+├── scripts/                # Training, visualization, spectral analysis
+├── utils/                  # Dataset generation, normalization
+├── run_pipeline.py         # Unified forward + inverse training CLI
+├── data/                   # Saved datasets
+├── checkpoints/            # Trained model weights
 ```
 
-<div align="center">
-  <img src="figures/fno_vs_groundtruth_topologies.png" width="700"/>
-  <p style="font-size:small">FNO predictions vs. ground truth across ER, BA, WS networks</p>
-</div>
+---
 
-### ➤ Inverse Learning
-Recover \( \theta \) from trajectories
+## 🔧 Training & Inference
+
+### Forward Training (params → trajectory)
 ```bash
-python run_pipeline.py train_inverse --epochs 100
+python run_pipeline.py train_forward --epochs 50
 ```
 
-### ➤ Topology Inference (Exploratory)
-Predict clustering/path length/assortativity from rumor dynamics
-
+### Inverse Training (trajectory → params)
 ```bash
-python scripts/train_topology_inverse.py
-python scripts/visualize_topology_inverse.py --samples 30
+python run_pipeline.py train_inverse --epochs 50
 ```
 
-![Inverse prediction of topology features](figures/inverse_topology_predictions.png)
-*Clustering and path length show recoverable structure from observed dynamics; assortativity remains harder.*
+### Full Pipeline
+```bash
+python run_pipeline.py all --epochs 50
+```
 
+---
 
+## 🎨 Spectral Visualizations
 
+Learned spectral filters are interpretable and can be visualized:
 
+### 🔹 Fourier Filter Line Plots
+```bash
+python scripts/visualize_fourier_filters.py   --checkpoint checkpoints/fno_forward_heterogeneous.pth   --in_channels 5 --out_channels 3
+```
 
-## 📈 Bifurcation & Parameter Sensitivity
+### 🔹 Filter Matrix View (per layer, per input/output channel pair)
+```bash
+python scripts/visualize_filter_matrices.py
+```
 
-This system explores parameter interactions across large sweeps.
+### 🔹 Aggregated Frequency Spectrum
+```bash
+python scripts/plot_aggregated_spectrum.py   --checkpoint checkpoints/fno_forward_heterogeneous.pth   --in_channels 5 --out_channels 3
+```
 
-<div align="center">
-  <img src="figures/dong_parameter_bifurcation_matrix_70res.png" width="700"/>
-  <p style="font-size:small">Bifurcation surfaces computed for combinations of α, β, δ</p>
-</div>
+This reveals which Fourier modes each FNO layer focuses on — showing how early layers capture global dynamics and later layers refine fine-grain variations.
+
+---
+
+## 💾 Data Format
+
+Saved datasets in `data/` follow this format:
+- `.pth` files with `[x_tensor, y_tensor]`
+- Forward mode: `x = [params + time]`, `y = trajectory`
+- Inverse mode: `x = [trajectory + time]`, `y = params`
 
 ---
 
 ## 📊 Requirements
+
 ```bash
 pip install -r requirements.txt
 ```
+
 - Python ≥ 3.10
 - PyTorch ≥ 1.12
 - matplotlib, numpy, tqdm, seaborn, networkx
 
 ---
 
-## 🤔 Who Should Use This?
+## ⚡ Future Extensions
 
-- ML folks playing with neural operators
-- Network scientists modeling spread phenomena
-- People curious about how topology affects emergent dynamics
-- Anyone looking to test FNOs on weird, real-world inspired simulations
-- People who enjoy sushi
-
----
-
-## 📜 License
-
-MIT — do your thing. License.
+- [ ] Topology-aware inverse learning (graph statistics → trajectory)
+- [ ] Transformer-style operator on graph signals
+- [ ] Live interactive bifurcation sliders
+- [ ] Compare learned filters across graph types (ER vs BA vs WS)
 
 ---
 
-## 👨‍💻 Author
+## 👨‍🔬 Author
 
 **Jacob Briones**  
-*Dad. Above average Math Student. Okay Phsyics Student. Avid in Machine learning, and diaper changing.*
-
-
+Applied mathematician, neural operator whisperer, and full-time dad. Essentially self taught.
