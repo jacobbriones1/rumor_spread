@@ -1,37 +1,73 @@
 import torch
-import os
 from torch.utils.data import DataLoader, TensorDataset
-from models.fno import FN1d
-from dynamics.dong_model import DongRumorModel
+from models.fno import FNO1d
 from utils.data_generation import generate_dataset
+from dynamics.sir_heterogeneous import DegreeAwareSIRModel
+import os
+import gc
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# === Hyperparameters ===
+T = 200
+dt = 0.1
+T_steps = int(T / dt)
+NUM_SAMPLES = 258  # reduced for laptop safety
+BATCH_SIZE = 16
+EPOCHS = 32
+LR = 1e-3
+SAVE_PATH = "checkpoints/fno_forward_heterogeneous.pth"
+DATA_PATH = "../data/heterogeneous_forward.pth"
 
-T, dt = 20, 0.05
-NUM_SAMPLES = 1000
-BATCH_SIZE = 32
+# === Device ===
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Using device: {device}")
 
-if __name__ == "__main__":
-    model_system = DongRumorModel()
-    x, y = generate_dataset(model_system, NUM_SAMPLES, T, dt, inverse=False, file_name='trajectories_dong_model.pth')
-    print(f"x shape: {x.shape}, y shape: {y.shape}")
+# === Initialize the rumor model
+sir_model = DegreeAwareSIRModel()
 
-    loader = DataLoader(TensorDataset(x, y), batch_size=BATCH_SIZE, shuffle=True)
+# === Load or generate dataset ===
+if os.path.exists(DATA_PATH):
+    print(f"📦 Loading dataset from {DATA_PATH}")
+    x, y = torch.load(DATA_PATH, map_location='cpu')
+else:
+    print("🧪 Generating dataset...")
+    x, y = generate_dataset(
+        sir_model,
+        num_samples=NUM_SAMPLES,
+        T=T,
+        dt=dt,
+        inverse=False,
+        file_name="heterogeneous_forward"
+    )
 
-    model = FNO1d(in_channels=4, out_channels=3).to(DEVICE)
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+# === DataLoader ===
+dataset = TensorDataset(x, y)
+loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
 
-    for epoch in range(100):
-        model.train()
-        losses = []
-        for xb, yb in loader:
-            xb, yb = xb.to(DEVICE), yb.to(DEVICE)
-            optimizer.zero_grad()  # ✅ FIXED
-            loss = torch.nn.functional.mse_loss(model(xb), yb)
-            loss.backward()
-            optimizer.step()
-            losses.append(loss.item())
-        print(f"[Epoch {epoch}] Forward Loss: {sum(losses)/len(losses):.6f}")
+# === Model ===
+model = FNO1d(in_channels=5,out_channels=3, n_modes=16, width=32, depth = 6).to(device)  # 4 params + 1 time
+optimizer = torch.optim.Adam(model.parameters(), lr=LR)
 
-    os.makedirs("checkpoints", exist_ok=True)
-    torch.save(model.state_dict(), "checkpoints/dong_fno_forward.pth")
+# === Training Loop ===
+for epoch in range(EPOCHS):
+    model.train()
+    losses = []
+
+    for xb, yb in loader:
+        xb, yb = xb.to(device), yb.to(device)
+        optimizer.zero_grad()
+        pred = model(xb)                    # Output shape: [N, 3, T]
+        loss = torch.nn.functional.mse_loss(pred, yb)
+        loss.backward()
+        optimizer.step()
+        losses.append(loss.item())
+
+    print(f"[Epoch {epoch+1:02d}] Forward Loss: {sum(losses)/len(losses):.6f}")
+
+    # === Clean memory ===
+    torch.cuda.empty_cache()
+    gc.collect()
+
+# === Save Model ===
+os.makedirs("checkpoints", exist_ok=True)
+torch.save(model.state_dict(), SAVE_PATH)
+print(f"✅ Model saved to {SAVE_PATH}")
