@@ -39,9 +39,9 @@ Each model implements:
 .state_dim()
 ```
 
-- **DongRumorModel** – classic saturation-based rumor model
-- **SIRModel** – (WIP) epidemic simulation
-- **TopoRumorModel** – includes topology-dependent outputs (clustering, etc.)
+- **DongRumorModel** – rumor propogation model on homogeneous network with varying (logistic) population size, as proposed by Dong et. al (2018).
+- **SIRModel** –  Rumor Spreading epidemic simulation on a given network topology.
+- **TopoRumorModel** – SIRModel which includes topology-dependent outputs (clustering, etc.)
 
 ---
 
@@ -85,7 +85,7 @@ python scripts/visualize_topology_inverse.py --samples 30
 
 ---
 
-![Bifurcation surfaces for combinations of α, β, δ](figures/dong_parameter_bifurcation_matrix_70res.png)
+![Bifurcation surfaces/heatmaps for combinations of α, β, δ](figures/dong_parameter_bifurcation_matrix_70res.png)
 *Bifurcation surfaces generated across parameter sweeps — highlighting nonlinear transitions.*
 
 ## 📈 Bifurcation & Parameter Sensitivity
@@ -115,6 +115,7 @@ pip install -r requirements.txt
 - Network scientists modeling spread phenomena
 - People curious about how topology affects emergent dynamics
 - Anyone looking to test FNOs on weird, real-world inspired simulations
+- People who enjoy sushi
 
 ---
 
