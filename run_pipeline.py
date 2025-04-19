@@ -9,8 +9,8 @@ from dynamics.dong_model import DongRumorModel
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # === PARAMETERS ===
-T, dt = 1000, 0.01
-INIT_CONDS = [0.8, 0.05, 0.9] #S I N
+T, dt = 1000, 0.05
+INIT_CONDS = [0.8, 0.05, 1.3] #S I N
 NUM_SAMPLES = 1000
 BATCH_SIZE = 32
 
@@ -99,7 +99,7 @@ def inference(model_system):
     model.eval()
 
     # True trajectory
-    true_params = torch.tensor([0.4, 0.1, 0.08])
+    true_params = torch.tensor([0.9, 1.4, 0.9])
     traj = model_system.simulate(true_params, T, dt, initial_conditions=INIT_CONDS)
 
     # Input shape [1, 3, T]

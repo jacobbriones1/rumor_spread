@@ -11,10 +11,10 @@ class DongRumorModel(DynamicalSystem):
         # Sensible initial conditions (rumor starts with a small spark)
         S, I, N = kwargs.get("initial_conditions", [0.8, 0.2, 1.0])
         
-        def clip(x, low=0.0, high=1.0):
+        def clip(x, low=0.0, high=2.0):
             return max(low, min(x, high))
 
-        max_d = 0.05  # max allowed change per time step
+        max_d = 0.1  # max allowed change per time step
         trajectory = []
 
         for _ in range(T):

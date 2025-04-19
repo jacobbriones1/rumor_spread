@@ -3,7 +3,7 @@ import torch.nn as nn
 from .spectral_conv import SpectralConv1d
 
 class FNO1d(nn.Module):
-    def __init__(self, in_channels, out_channels, n_modes=16, width=64, depth=6, dropout=0.1):
+    def __init__(self, in_channels, out_channels, n_modes=8, width=16, depth=6, dropout=0.1):
         super().__init__()
         self.lift = nn.Conv1d(in_channels, width, 1)
         self.blocks = nn.ModuleList([
