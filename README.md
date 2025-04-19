@@ -1,5 +1,5 @@
 
-# 📣 Rumor Spread Modeling with FNOs
+# 📣 Modellling The Propogation of Rumors with Fourier Neural Operators
 
 A research simulation and machine learning pipeline for modeling **rumor propagation dynamics** using **Fourier Neural Operators (FNOs)**. Based on a modular design, this framework supports:
 
