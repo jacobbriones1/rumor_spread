@@ -28,7 +28,7 @@ x, y = generate_dataset(model_system, num_samples=500)
 loader = DataLoader(TensorDataset(x, y), batch_size=32, shuffle=True)
 
 # FNO Inverse Model
-model = FNO1d(in_channels=3, out_channels=3).to(device)
+model = FNO1d(in_channels=4, out_channels=3).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
 # Train

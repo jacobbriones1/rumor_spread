@@ -1,7 +1,11 @@
 # utils/data_generation.py
+import os
 import torch
 import numpy as np
 from tqdm import tqdm
+
+
+INIT_CONDS = [0.8, 0.1, 0.2]  # Default S, I, N values
 
 def sample_params():
     alpha = torch.empty(1).uniform_(0.1, 0.9)
@@ -9,34 +13,32 @@ def sample_params():
     delta = torch.empty(1).uniform_(0.01, 0.9)
     return torch.cat([alpha, beta, delta], dim=0)
 
-def generate_dataset(model, num_samples, T=50, dt=0.05, inverse=False):
-    """
-    Returns (x, y) where:
-    - Forward: x = params over time, y = trajectory
-    - Inverse: x = trajectory, y = params over time
-    """
+# === DATA GENERATION ===
+def generate_dataset(model, num_samples, T, dt, inverse=False, file_name=None):
     x_list, y_list = [], []
-    max_tries = num_samples * 10
-    collected = 0
+    time_grid = torch.linspace(0, 1, int(T/dt)).unsqueeze(0)  # Shape: (1, T)
 
-    while collected < num_samples and max_tries > 0:
-        max_tries -= 1
+    for _ in range(num_samples):
+        params = sample_params()  # Shape: (3,)
+        traj = model.simulate(params, T, dt, initial_conditions=INIT_CONDS)  # Shape: (3, T)
 
-        params = sample_params()
-        traj = model.simulate(params, T, dt, initial_conditions=[0.5, 0.5, 1.0])  # strong dynamics
-
-        # REJECT flat or non-dynamic trajectories
-        if torch.std(traj[1]) < 1e-4:  # I(t) must vary
-            continue
+        # Repeat parameters across time and append time grid
+        param_repeated = params.unsqueeze(-1).repeat(1, time_grid.shape[1])  # Shape: (3, T)
+        full_input = torch.cat([param_repeated, time_grid], dim=0)  # Shape: (4, T)
 
         if inverse:
-            x_list.append(traj)
-            y_list.append(params.unsqueeze(-1).repeat(1, T))
+            x_list.append(traj)  # Input is trajectory, shape (3, T)
+            y_list.append(params.unsqueeze(-1).repeat(1, time_grid.shape[1]))
         else:
-            x_list.append(params.unsqueeze(-1).repeat(1, T))
-            y_list.append(traj)
+            x_list.append(full_input)  # Input is [params + time] (4, T)
+            y_list.append(traj)        # Output is the true trajectory (3, T)
 
-        collected += 1
+    x_tensor, y_tensor = torch.stack(x_list), torch.stack(y_list)
 
-    print(f"Generated {collected} dynamic samples.")
-    return torch.stack(x_list), torch.stack(y_list)
+    if file_name is not None and isinstance(file_name, str):
+        if not file_name.endswith('.pth'):
+            file_name += '.pth'
+        os.makedirs("../data", exist_ok=True)
+        torch.save([x_tensor, y_tensor], os.path.join("../data", file_name))
+
+    return x_tensor, y_tensor

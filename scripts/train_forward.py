@@ -1,50 +1,36 @@
+# train_forward.py
 import torch
+import os
 from torch.utils.data import DataLoader, TensorDataset
 from models.fno import FNO1d
 from dynamics.dong_model import DongRumorModel
-import os
+from utils.data_generation import generate_dataset
 
-def sample_params():
-    alpha = torch.empty(1).uniform_(1.6, 2.0)
-    beta  = torch.empty(1).uniform_(0.8, 1.2)
-    delta = torch.empty(1).uniform_(0.02, 0.06)
-    return torch.cat([alpha, beta, delta], dim=0)
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def generate_dataset(model, num_samples, T=200, dt=0.05):
-    x_list, y_list = [], []
-    for _ in range(num_samples):
-        params = sample_params()
-        traj = model.simulate(params, T, dt, initial_conditions=[0.8, 0.2, 1.0])
-        x_list.append(params.unsqueeze(-1).repeat(1, T))
-        y_list.append(traj)
-    return torch.stack(x_list), torch.stack(y_list)
+T, dt = 20, 0.05
+NUM_SAMPLES = 1000
+BATCH_SIZE = 32
 
-# Init
-model_system = DongRumorModel()
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+if __name__ == "__main__":
+    model_system = DongRumorModel()
+    x, y = generate_dataset(model_system, NUM_SAMPLES, T, dt, inverse=False, file_name='trajectories_dong_model.pth')
+    loader = DataLoader(TensorDataset(x, y), batch_size=BATCH_SIZE, shuffle=True)
 
-# Data
-x, y = generate_dataset(model_system, num_samples=500)
-loader = DataLoader(TensorDataset(x, y), batch_size=32, shuffle=True)
+    model = FNO1d(in_channels=4, out_channels=3).to(DEVICE)
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
-# FNO Model
-model = FNO1d(in_channels=3, out_channels=3).to(device)
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+    for epoch in range(100):
+        model.train()
+        losses = []
+        for xb, yb in loader:
+            xb, yb = xb.to(DEVICE), yb.to(DEVICE)
+            optimizer.zero_grad()
+            loss = torch.nn.functional.mse_loss(model(xb), yb)
+            loss.backward()
+            optimizer.step()
+            losses.append(loss.item())
+        print(f"[Epoch {epoch}] Forward Loss: {sum(losses)/len(losses):.6f}")
 
-# Train
-for epoch in range(50):
-    model.train()
-    losses = []
-    for xb, yb in loader:
-        xb, yb = xb.to(device), yb.to(device)
-        optimizer.zero_grad()
-        pred = model(xb)
-        loss = torch.nn.functional.mse_loss(pred, yb)
-        loss.backward()
-        optimizer.step()
-        losses.append(loss.item())
-    print(f"[Epoch {epoch}] Forward Loss: {sum(losses)/len(losses):.6f}")
-
-# Save
-os.makedirs("checkpoints", exist_ok=True)
-torch.save(model.state_dict(), "checkpoints/dong_fno_forward.pth")
+    os.makedirs("checkpoints", exist_ok=True)
+    torch.save(model.state_dict(), "checkpoints/dong_fno_forward.pth")
