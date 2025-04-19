@@ -10,7 +10,7 @@ from utils.data_generation import generate_dataset  # ✅ Unified data generatio
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # === PARAMETERS ===
-T, dt = 20, 0.05
+T, dt = 512, 0.05
 T_steps = int(T / dt)
 INIT_CONDS = [0.8, 0.1, 0.2]
 NUM_SAMPLES = 1000
