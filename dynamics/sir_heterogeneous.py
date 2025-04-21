@@ -9,8 +9,8 @@ class DegreeAwareSIRModel(DynamicalSystem):
         params,
         T=200,
         dt=0.1,
-        N=120,
-        graph_type="ER",
+        N=100,
+        graph_type="BA",
         initial_conditions=None
     ):
         beta, alpha, delta, i0 = params
@@ -76,7 +76,7 @@ class DegreeAwareSIRModel(DynamicalSystem):
             S_frac = torch.mean((states == 0).float())
             I_frac = torch.mean((states == 1).float())
             R_frac = torch.mean((states == 2).float())
-            trajectory[t] = torch.tensor([S_frac, I_frac, R_frac])
+            trajectory[t] = torch.clamp(torch.tensor([S_frac, I_frac, R_frac]), min=0.0, max=1.0)
 
         return trajectory.T  # shape: [3, T_steps]
 

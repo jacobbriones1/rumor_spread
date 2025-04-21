@@ -12,10 +12,10 @@ import gc
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # === PARAMETERS ===
-T, dt = 50, 0.1
+T, dt = 50, 0.5
 T_steps = int(T / dt)
-NUM_SAMPLES = 100
-BATCH_SIZE = 16
+NUM_SAMPLES = 200
+BATCH_SIZE = 32
 
 # === FORWARD TRAINING ===
 def train_forward(model_system, epochs):
@@ -80,7 +80,7 @@ def inference(model_system):
     model.load_state_dict(torch.load("checkpoints/fno_forward_heterogeneous.pth", map_location=device))
     model.eval()
 
-    true_params = torch.tensor([0.5, 0.6, 0.04, 0.1])  # beta, alpha, delta, i0
+    true_params = torch.tensor([0.9, 0.2, 0.14, 0.1])  # beta, alpha, delta, i0
     traj = model_system.simulate(true_params, T, dt)[:, :T_steps]
 
     time_grid = torch.linspace(0, 1, T_steps).unsqueeze(0).to(device)
@@ -90,16 +90,16 @@ def inference(model_system):
     with torch.no_grad():
         pred = model(inp).cpu().squeeze(0)
 
+    colors = ['blue','red','green']
     labels = ['S(t)', 'I(t)', 'R(t)']
-    plt.figure(figsize=(10, 5))
+    plt.figure(figsize=(8, 5))
     for i in range(3):
-        plt.plot(traj[i], label=f"True {labels[i]}")
-        plt.plot(pred[i], '--', label=f"Pred {labels[i]}")
+        plt.plot(traj[i], '--',label=f"True {labels[i]}", lw=0.8, color = colors[i])
+        plt.plot(pred[i],  label=f"Pred {labels[i]}", lw=1., color = colors[i])
     plt.title("FNO Heterogeneous SIR: Prediction vs Ground Truth")
     plt.xlabel("Time step")
     plt.ylabel("Proportion")
-    plt.legend()
-    plt.grid(True)
+    plt.legend(loc='upper right')
     plt.tight_layout()
     plt.show()
 

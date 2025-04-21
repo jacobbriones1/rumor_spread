@@ -53,6 +53,14 @@ modular_fno/
 
 ---
 
+
+## 🕒 Temporal Generalization
+The FNO is trained on trajectories with high temporal resolution (200 time steps, dt=0.1) and successfully generalizes to a coarser resolution at inference (50 time steps, dt=0.5)
+
+<p align="center"> <img src="figures/inference_T50_dt0_5.png" width="600"/> </p>
+
+Observation: Despite the drastic reduction in time resolution, the model accurately tracks the evolution of rumor states across all compartments (𝑆,𝐼,𝑅). This highlights the FNO's operator-based invariance to discretization.
+
 ## 🔧 Training & Inference
 
 ### Forward Training (params → trajectory)

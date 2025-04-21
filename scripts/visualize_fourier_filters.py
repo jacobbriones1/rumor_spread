@@ -37,7 +37,7 @@ def visualize_filter_matrices(
         for i in range(in_channels):
             for j in range(out_channels):
                 ax = axs[i][j]
-                ax.imshow(weight_mag[i, j][None, :], aspect='auto', cmap='magma')
+                ax.imshow(weight_mag[i, j][None, :], aspect='auto', cmap='viridis')
                 ax.set_title(f"{i}→{j}", fontsize=9)
                 ax.set_yticks([])
                 ax.set_xticks([])
