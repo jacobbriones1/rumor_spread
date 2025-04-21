@@ -34,7 +34,7 @@ ODE-based SIR-type model from Dong et al. (2018)
 Standard SIR rumor model on fixed graph topologies
 
 ### 🔹 `DegreeAwareSIRModel`  
-Agent-based SIR model using degree-dependent transition probabilities \( P(k'|k) \) — now supports FNO-based learning and full parameter inversion
+Agent-based SIR model using degree-dependent transition probabilities $P(k'|k)$ — now supports FNO-based learning and full parameter inversion
 
 ---
 
